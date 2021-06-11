@@ -23,17 +23,12 @@ defmodule Election do
   end
 
   def update(election, {"v", id}) when is_integer(id) do
-    current = election.candidates
-              |> Enum.find(:error, fn candidate -> candidate.id == id end)
-    do_update_candidates(election.candidates, current)
+    election.candidates
+    |> Enum.map(&maybe_update_candidate(&1, id))
   end
 
-  defp do_update_candidates(candidates, :error), do: candidates
-
-  defp do_update_candidates(candidates, candidate) do
-    updated_candidate = %Candidate{candidate | votes: candidate.votes + 1}
-    candidates
-    |> Enum.reject(fn c -> c.id == updated_candidate.id end)
-    |> (fn candidates, updated -> [updated | candidates] end).(updated_candidate)
+  defp maybe_update_candidate(%Candidate{id: c_id} = candidate, id) when c_id == id do
+    %Candidate{candidate | votes: candidate.votes + 1}
   end
+  defp maybe_update_candidate(candidate, id), do: candidate
 end
