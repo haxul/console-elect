@@ -1,0 +1,5 @@
+a = IO.gets("a: ")
+b = IO.gets("b: ")
+{a, _} = Integer.parse(a)
+{b, _} = Integer.parse(b)
+IO.inspect(a + b)

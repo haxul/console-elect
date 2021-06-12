@@ -30,5 +30,5 @@ defmodule Election do
   defp maybe_update_candidate(%Candidate{id: c_id} = candidate, id) when c_id == id do
     %Candidate{candidate | votes: candidate.votes + 1}
   end
-  defp maybe_update_candidate(candidate, id), do: candidate
+  defp maybe_update_candidate(candidate, _id), do: candidate
 end
