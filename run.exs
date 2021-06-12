@@ -9,21 +9,26 @@ voting_machine_ips = [
   "10.1.8"
 ]
 
-simulate_api_call = fn _ip ->
-  votes = Enum.random(225..275)
-  :timer.sleep(votes)
-  votes
+simulate_api_call = fn
+  "10.1.5" -> raise "BOOOOOMMMMMM!"
+  _ip ->
+    votes = Enum.random(225..275)
+    :timer.sleep(votes)
+    votes
 end
 
 
 defmodule Worker do
   def start(fun) do
     pid = self()
-    spawn(fn -> send(pid, {self(), fun.()}) end)
+    spawn_link(fn -> send(pid, {self(), fun.()}) end)
   end
 
   def wait(pid) do
-
+    receive do
+      {^pid, result} -> result
+    after 2_000 -> {:error, "Receive Timeout"}
+    end
   end
 end
 
@@ -33,13 +38,6 @@ voting_machine_ips
        Worker.start(fn -> simulate_api_call.(ip)  end)
      end
    )
+|> Enum.map(&Worker.wait/1)
+|> Enum.sum
 |> IO.inspect
-|> Enum.map(
-     fn
-       _pid ->
-         receive do
-           {pid, result} -> {pid, result}
-         end
-     end
-   )
-|>
