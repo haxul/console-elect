@@ -10,8 +10,26 @@ defmodule HttpServer do
   end
 
   def init() do
+    Process.flag(:trap_exit, true)
+    start_listener()
+    |> supervise()
+  end
+
+  def start_listener() do
     {:ok, socket} = :gen_tcp.listen(@port, @http_options)
-    accept(socket)
+    pid = spawn_link(HttpServer, :accept, [socket])
+    Logger.info("Listener started #{inspect(pid)}")
+    socket
+  end
+
+  def supervise(socket) do
+    receive do
+      {:EXIT, pid, reason} ->
+        Logger.error("Listener process (#{inspect(pid)}) crashed. #{reason}}")
+        :gen_tcp.close(socket)
+        start_listener
+        |> supervise()
+    end
   end
 
   def accept(socket) do
